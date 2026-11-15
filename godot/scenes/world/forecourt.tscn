@@ -1,0 +1,147 @@
+[gd_scene load_steps=14 format=3 uid="uid://forecourt001"]
+
+[ext_resource type="Script" path="res://scripts/world/forecourt.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/textures/Asphalt031_2K-JPG_Color.jpg" id="2"]
+[ext_resource type="Texture2D" path="res://assets/textures/Asphalt031_2K-JPG_NormalGL.jpg" id="3"]
+[ext_resource type="Texture2D" path="res://assets/textures/Asphalt031_2K-JPG_Roughness.jpg" id="4"]
+[ext_resource type="Script" path="res://scripts/world/station_dressing.gd" id="5"]
+[ext_resource type="Script" path="res://scripts/world/stand_in_car.gd" id="6"]
+
+[sub_resource type="StandardMaterial3D" id="Mat_AsphaltPbr"]
+albedo_texture = ExtResource("2")
+normal_enabled = true
+normal_texture = ExtResource("3")
+roughness = 0.62
+roughness_texture = ExtResource("4")
+metallic_specular = 0.7
+uv1_scale = Vector3(8, 8, 8)
+texture_filter = 5
+
+[sub_resource type="StandardMaterial3D" id="Mat_Concrete"]
+albedo_color = Color(0.72, 0.7, 0.66, 1)
+roughness = 0.88
+
+[sub_resource type="StandardMaterial3D" id="Mat_CanopyRed"]
+albedo_color = Color(0.85098, 0.105882, 0.12549, 1)
+roughness = 0.55
+
+[sub_resource type="StandardMaterial3D" id="Mat_CanopyYellow"]
+albedo_color = Color(0.964706, 0.764706, 0.262745, 1)
+roughness = 0.45
+emission_enabled = true
+emission = Color(1, 0.72, 0.18, 1)
+emission_energy_multiplier = 3.0
+
+[sub_resource type="StandardMaterial3D" id="Mat_Pillar"]
+albedo_color = Color(0.96, 0.94, 0.9, 1)
+roughness = 0.65
+
+[sub_resource type="StandardMaterial3D" id="Mat_Tire"]
+albedo_color = Color(0.08, 0.08, 0.08, 1)
+roughness = 0.95
+
+[sub_resource type="PlaneMesh" id="Plane_Ground"]
+size = Vector2(50, 50)
+
+[sub_resource type="BoxMesh" id="Box_1m"]
+size = Vector3(1, 1, 1)
+
+[node name="Forecourt" type="Node3D"]
+script = ExtResource("1")
+
+[node name="Ground" type="MeshInstance3D" parent="."]
+mesh = SubResource("Plane_Ground")
+surface_material_override/0 = SubResource("Mat_AsphaltPbr")
+
+[node name="PumpIsland" type="MeshInstance3D" parent="."]
+transform = Transform3D(3.2, 0, 0, 0, 0.15, 0, 0, 0, 2.8, 0, 0.08, 1.6)
+mesh = SubResource("Box_1m")
+surface_material_override/0 = SubResource("Mat_Concrete")
+
+[node name="CanopyRoof" type="MeshInstance3D" parent="."]
+transform = Transform3D(14, 0, 0, 0, 0.22, 0, 0, 0, 9.5, 0, 4.35, -0.2)
+mesh = SubResource("Box_1m")
+surface_material_override/0 = SubResource("Mat_CanopyRed")
+
+[node name="CanopyTrim" type="MeshInstance3D" parent="."]
+transform = Transform3D(14, 0, 0, 0, 0.07, 0, 0, 0, 0.4, 0, 4.48, 4.55)
+mesh = SubResource("Box_1m")
+surface_material_override/0 = SubResource("Mat_CanopyYellow")
+
+[node name="PillarL" type="MeshInstance3D" parent="."]
+transform = Transform3D(0.35, 0, 0, 0, 3.6, 0, 0, 0, 0.35, -6.4, 1.8, 4.2)
+mesh = SubResource("Box_1m")
+surface_material_override/0 = SubResource("Mat_Pillar")
+
+[node name="PillarR" type="MeshInstance3D" parent="."]
+transform = Transform3D(0.35, 0, 0, 0, 3.6, 0, 0, 0, 0.35, 6.4, 1.8, 4.2)
+mesh = SubResource("Box_1m")
+surface_material_override/0 = SubResource("Mat_Pillar")
+
+[node name="PillarBL" type="MeshInstance3D" parent="."]
+transform = Transform3D(0.35, 0, 0, 0, 3.6, 0, 0, 0, 0.35, -6.4, 1.8, -4.6)
+mesh = SubResource("Box_1m")
+surface_material_override/0 = SubResource("Mat_Pillar")
+
+[node name="PillarBR" type="MeshInstance3D" parent="."]
+transform = Transform3D(0.35, 0, 0, 0, 3.6, 0, 0, 0, 0.35, 6.4, 1.8, -4.6)
+mesh = SubResource("Box_1m")
+surface_material_override/0 = SubResource("Mat_Pillar")
+
+[node name="CanopyLightL" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.2, 3.9, 0.5)
+light_color = Color(1, 0.94, 0.86, 1)
+light_energy = 3.6
+omni_range = 12.0
+shadow_enabled = true
+
+[node name="CanopyLightR" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.2, 3.9, 0.5)
+light_color = Color(1, 0.94, 0.86, 1)
+light_energy = 3.6
+omni_range = 12.0
+shadow_enabled = true
+
+[node name="StationDressing" type="Node3D" parent="."]
+script = ExtResource("5")
+
+[node name="PumpAnchor" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.16, 1.85)
+
+[node name="CarAnchor" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -2.9)
+
+[node name="SimpleCar" type="Node3D" parent="CarAnchor"]
+
+[node name="Body" type="CSGBox3D" parent="CarAnchor/SimpleCar"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.55, 0)
+size = Vector3(1.85, 0.45, 4.2)
+material = SubResource("Mat_CanopyRed")
+
+[node name="Cabin" type="CSGBox3D" parent="CarAnchor/SimpleCar"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.92, -0.35)
+size = Vector3(1.55, 0.36, 1.75)
+material = SubResource("Mat_Pillar")
+
+[node name="WheelFL" type="CSGSphere3D" parent="CarAnchor/SimpleCar"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.78, 0.32, 1.35)
+radius = 0.38
+material = SubResource("Mat_Tire")
+
+[node name="WheelFR" type="CSGSphere3D" parent="CarAnchor/SimpleCar"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.78, 0.32, 1.35)
+radius = 0.38
+material = SubResource("Mat_Tire")
+
+[node name="WheelBL" type="CSGSphere3D" parent="CarAnchor/SimpleCar"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.78, 0.32, -1.35)
+radius = 0.38
+material = SubResource("Mat_Tire")
+
+[node name="WheelBR" type="CSGSphere3D" parent="CarAnchor/SimpleCar"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.78, 0.32, -1.35)
+radius = 0.38
+material = SubResource("Mat_Tire")
+
+[node name="StandInCar" type="Node3D" parent="CarAnchor"]
+script = ExtResource("6")

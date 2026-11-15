@@ -1,0 +1,111 @@
+[gd_scene load_steps=14 format=3 uid="uid://main001"]
+
+[ext_resource type="PackedScene" uid="uid://forecourt001" path="res://scenes/world/forecourt.tscn" id="1"]
+[ext_resource type="PackedScene" uid="uid://fuelpump001" path="res://scenes/pump/fuel_pump.tscn" id="2"]
+[ext_resource type="PackedScene" uid="uid://gamehud001" path="res://scenes/ui/game_hud.tscn" id="3"]
+[ext_resource type="Script" path="res://scripts/world/player_camera.gd" id="4"]
+[ext_resource type="Script" path="res://scripts/tools/capture_frame_hook.gd" id="7"]
+[ext_resource type="PackedScene" uid="uid://resultoverlay" path="res://scenes/ui/result_overlay.tscn" id="5"]
+[ext_resource type="PackedScene" uid="uid://confetti001" path="res://scenes/fx/confetti.tscn" id="6"]
+[ext_resource type="Script" path="res://scripts/ui/screen_fx.gd" id="8"]
+[ext_resource type="Script" path="res://scripts/ui/settings_menu.gd" id="9"]
+
+[sub_resource type="ProceduralSkyMaterial" id="Sky_Dusk"]
+sky_top_color = Color(0.05, 0.06, 0.19, 1)
+sky_horizon_color = Color(0.98, 0.42, 0.26, 1)
+sky_curve = 0.11
+sky_energy_multiplier = 0.75
+ground_bottom_color = Color(0.03, 0.03, 0.05, 1)
+ground_horizon_color = Color(0.52, 0.24, 0.22, 1)
+ground_curve = 0.06
+sun_angle_max = 12.0
+sun_curve = 0.06
+
+[sub_resource type="Sky" id="Sky_Main"]
+sky_material = SubResource("Sky_Dusk")
+
+[sub_resource type="Environment" id="Env_Main"]
+background_mode = 2
+sky = SubResource("Sky_Main")
+ambient_light_source = 3
+ambient_light_color = Color(0.55, 0.45, 0.6, 1)
+ambient_light_energy = 0.45
+tonemap_mode = 4
+tonemap_exposure = 1.1
+ssr_enabled = true
+ssr_max_steps = 56
+ssr_fade_in = 0.2
+ssr_fade_out = 1.6
+ssao_enabled = true
+ssil_enabled = true
+sdfgi_enabled = false
+glow_enabled = true
+glow_intensity = 0.9
+glow_strength = 1.1
+glow_bloom = 0.06
+glow_hdr_threshold = 0.95
+fog_enabled = true
+fog_light_color = Color(0.42, 0.28, 0.38, 1)
+fog_density = 0.0035
+fog_sun_scatter = 0.35
+fog_aerial_perspective = 0.25
+adjustment_enabled = true
+adjustment_contrast = 1.08
+adjustment_saturation = 1.2
+
+[node name="Main" type="Node3D"]
+
+[node name="CaptureFrameHook" type="Node" parent="."]
+script = ExtResource("7")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Env_Main")
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+position = Vector3(5, 11, 3)
+rotation = Vector3(-0.2, 0.42, 0)
+light_color = Color(1, 0.58, 0.34, 1)
+light_energy = 1.1
+light_angular_distance = 0.75
+shadow_enabled = true
+directional_shadow_split_1 = 0.12
+directional_shadow_split_2 = 0.32
+directional_shadow_split_3 = 0.6
+directional_shadow_max_distance = 35.0
+
+[node name="Forecourt" parent="." instance=ExtResource("1")]
+
+[node name="FuelPump" parent="Forecourt/PumpAnchor" instance=ExtResource("2")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 0, 0, 0)
+
+[node name="Confetti" parent="Forecourt/PumpAnchor" instance=ExtResource("6")]
+
+[node name="CameraRig" type="Node3D" parent="."]
+
+[node name="Camera3D" type="Camera3D" parent="CameraRig"]
+fov = 46.0
+near = 0.05
+far = 120.0
+script = ExtResource("4")
+orbit_target = NodePath("../../Forecourt/PumpAnchor")
+distance = 5.5
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="GameHud" parent="UI" instance=ExtResource("3")]
+
+[node name="ScreenFx" type="CanvasLayer" parent="."]
+script = ExtResource("8")
+
+[node name="ResultOverlay" parent="." instance=ExtResource("5")]
+
+[node name="SettingsLayer" type="CanvasLayer" parent="."]
+layer = 10
+
+[node name="SettingsMenu" type="Control" parent="SettingsLayer"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+script = ExtResource("9")

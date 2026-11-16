@@ -3,7 +3,7 @@ extends Node
 ## Optional: `--pump-to <dollars>` holds the pump until the sale reaches it, `--release` stops it
 ## (capturing `--after <sec>` later, default 0.8s, mid result FX), `--target <dollars>` forces the target,
 ## `--with-ui` keeps HUD/overlay visible, `--eye x,y,z --look x,y,z` overrides the camera,
-## `--view pump|chase` picks the camera view without saving it, `--open-settings` shows the menu.
+## `--assist perfect|near_miss` plays one assisted round. `--view pump|chase` picks the camera view without saving it, `--open-settings` shows the menu.
 
 const DEFAULT_OUT := "res://.capture/frame.png"
 
@@ -44,6 +44,14 @@ func _capture(out_path: String, args: PackedStringArray) -> void:
 	if args.has("--open-settings"):
 		root.get_node("SettingsLayer/SettingsMenu").call("_set_open", true)
 	await get_tree().create_timer(1.2 if args.has("--view") else 0.3).timeout
+	if args.has("--assist"):
+		Settings.set_stop_assist(StringName(args[args.find("--assist") + 1]))
+		GameState.start_pump()
+		while GameState.phase != &"result":
+			await get_tree().process_frame
+		print("assist result: shown $%.2f target $%.2f" % [GameState.shown_dollars(), GameState.target_dollars])
+		var wait := float(args[args.find("--after") + 1]) if args.has("--after") else 0.8
+		await get_tree().create_timer(wait, true, false, true).timeout
 	if args.has("--pump-to"):
 		var stop_at := float(args[args.find("--pump-to") + 1])
 		GameState.start_pump()

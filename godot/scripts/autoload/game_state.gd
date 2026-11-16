@@ -41,6 +41,8 @@ var _stop_timer: float = 0.0
 var _was_in_perfect := false
 var _was_over := false
 var _last_whole_dollar := 0
+## Settings.stop_assist target for this round in whole cents, or -1 when the player stops by hand.
+var _assist_goal_cents := -1
 
 
 func _ready() -> void:
@@ -74,6 +76,7 @@ func reset_round() -> void:
 	_was_in_perfect = false
 	_was_over = false
 	_last_whole_dollar = 0
+	_assist_goal_cents = -1
 	phase = &"ready"
 
 
@@ -85,16 +88,18 @@ func start_pump() -> void:
 		return
 	if phase == &"ready":
 		phase = &"pumping"
+		_assist_goal_cents = _pick_assist_goal()
 	pumping = true
 	flow_changed.emit(true)
 
 
-func request_stop() -> void:
-	if not pumping or phase != &"pumping":
-		return
+func request_stop() -> bool:
+	if not pumping or phase != &"pumping" or _assist_goal_cents >= 0:
+		return false
 	pumping = false
 	pending_stop = true
 	_stop_timer = STOP_LATENCY_SEC
+	return true
 
 
 func tick(delta: float) -> void:
@@ -112,6 +117,11 @@ func tick(delta: float) -> void:
 	if flow_time > 0.0:
 		gallons += flow_gallons_per_sec * flow_ratio() * flow_time
 		dollars = gallons * PRICE_PER_GALLON
+		if _assist_goal_cents >= 0 and dollars * 100.0 >= _assist_goal_cents:
+			dollars = _assist_goal_cents / 100.0 + 0.000001
+			gallons = dollars / PRICE_PER_GALLON
+			pumping = false
+			pending_stop = false
 		var whole := int(floor(dollars))
 		if whole > _last_whole_dollar:
 			_last_whole_dollar = whole
@@ -131,6 +141,16 @@ func tick(delta: float) -> void:
 		went_over_target.emit()
 	_was_in_perfect = in_perfect
 	_was_over = over
+
+
+func _pick_assist_goal() -> int:
+	var target_cents := int(round(target_dollars * 100.0))
+	match Settings.stop_assist:
+		&"perfect":
+			return target_cents
+		&"near_miss":
+			return target_cents - randi_range(1, 4)
+	return -1
 
 
 func _finish_round() -> void:

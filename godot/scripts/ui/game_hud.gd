@@ -9,20 +9,12 @@ extends Control
 
 var _flowing := false
 var _last_shown_cents := -1
-var _hint: Label
 
 
 func _ready() -> void:
-	var solo := $Panel/Margin/VBox/Solo as Label
-	if solo:
-		var pill := StyleBoxFlat.new()
-		pill.bg_color = Color("#087f5b")
-		pill.set_corner_radius_all(14)
-		pill.content_margin_left = 12
-		pill.content_margin_right = 12
-		pill.content_margin_top = 6
-		pill.content_margin_bottom = 6
-		solo.add_theme_stylebox_override("normal", pill)
+	theme = UiTheme.get_theme()
+	Settings.stop_assist_changed.connect(_on_stop_assist_changed)
+	_on_stop_assist_changed(Settings.stop_assist)
 	GameState.round_finished.connect(_on_round_finished)
 	GameState.flow_changed.connect(_on_flow_changed)
 	GameState.round_reset.connect(_refresh_all)
@@ -62,8 +54,8 @@ func _update_live() -> void:
 	_last_shown_cents = cents
 	showing_label.add_theme_color_override(
 		"font_color",
-		Color("#d92d20") if GameState.is_over_target() else (
-			Color("#087f5b") if GameState.in_perfect_zone() else Color("#171717")
+		UiTheme.RED if GameState.is_over_target() else (
+			UiTheme.GREEN if GameState.in_perfect_zone() else UiTheme.TEXT
 		)
 	)
 	if GameState.is_over_target():
@@ -97,40 +89,57 @@ func _pop(label: Label, peak: float) -> void:
 
 
 func _set_badge(text: String, danger: bool, perfect: bool = false) -> void:
+	if status_badge.text == text:
+		return
 	status_badge.text = text
-	status_badge.add_theme_color_override("font_color", Color.WHITE)
-	if danger:
-		status_badge.add_theme_stylebox_override(
-			"normal",
-			_make_badge_style(Color("#d92d20"))
-		)
-	elif perfect:
-		status_badge.add_theme_stylebox_override("normal", _make_badge_style(Color("#087f5b")))
-	else:
-		status_badge.add_theme_stylebox_override("normal", _make_badge_style(Color("#171717")))
+	var bg := UiTheme.RED if danger else (UiTheme.GREEN if perfect else Color(1, 1, 1, 0.12))
+	status_badge.add_theme_stylebox_override("normal", UiTheme.pill(bg))
 
 
-func _make_badge_style(bg: Color) -> StyleBoxFlat:
-	var s := StyleBoxFlat.new()
-	s.bg_color = bg
-	s.set_corner_radius_all(12)
-	s.content_margin_left = 10
-	s.content_margin_right = 10
-	s.content_margin_top = 4
-	s.content_margin_bottom = 4
-	return s
+func _on_stop_assist_changed(mode: StringName) -> void:
+	var solo := $Panel/VBox/Header/Solo as Label
+	var assisted := mode != &"off"
+	solo.text = "Assist: %s" % Settings.STOP_ASSISTS[mode] if assisted else "Solo run"
+	solo.add_theme_color_override("font_color", Color("#2a1a00") if assisted else UiTheme.TEXT)
+	solo.add_theme_stylebox_override("normal", UiTheme.pill(UiTheme.AMBER if assisted else UiTheme.GREEN_DARK))
 
 
 func _add_hint() -> void:
-	_hint = Label.new()
-	_hint.text = "Space / click nozzle · M mute · R next · Tab free camera · Esc settings"
-	_hint.add_theme_color_override("font_color", Color(1, 1, 1, 0.72))
-	_hint.add_theme_font_size_override("font_size", 13)
-	_hint.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
-	_hint.offset_top = -44
-	_hint.offset_bottom = -16
-	_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	add_child(_hint)
+	var bar := PanelContainer.new()
+	bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var bg := UiTheme.pill(Color(0.05, 0.05, 0.07, 0.62))
+	bg.content_margin_left = 16
+	bg.content_margin_right = 16
+	bg.content_margin_top = 6
+	bg.content_margin_bottom = 6
+	bar.add_theme_stylebox_override("panel", bg)
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 8)
+	bar.add_child(row)
+	for pair in [["Space", "Pump"], ["R", "Next"], ["M", "Mute"], ["Tab", "Free cam"], ["Esc", "Settings"]]:
+		var key := Label.new()
+		key.text = pair[0]
+		key.add_theme_font_size_override("font_size", 13)
+		var cap := UiTheme.pill(Color(1, 1, 1, 0.16))
+		cap.set_corner_radius_all(6)
+		cap.content_margin_left = 8
+		cap.content_margin_right = 8
+		cap.content_margin_top = 1
+		cap.content_margin_bottom = 1
+		key.add_theme_stylebox_override("normal", cap)
+		row.add_child(key)
+		var what := Label.new()
+		what.text = pair[1] + "   "
+		what.theme_type_variation = &"Muted"
+		what.add_theme_font_size_override("font_size", 13)
+		row.add_child(what)
+	var strip := CenterContainer.new()
+	strip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	strip.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
+	strip.offset_top = -50
+	strip.offset_bottom = -12
+	strip.add_child(bar)
+	add_child(strip)
 
 
 func _pulse_showing() -> void:

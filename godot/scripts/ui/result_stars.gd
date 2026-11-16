@@ -3,7 +3,7 @@ extends Control
 ## Three drawn stars that pop in one at a time on the result card.
 
 const GOLD := Color("#f6b51e")
-const EMPTY := Color(0, 0, 0, 0.16)
+const EMPTY := Color(1, 1, 1, 0.12)
 const RADIUS := 30.0
 const GAP := 84.0
 

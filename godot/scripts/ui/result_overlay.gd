@@ -20,6 +20,7 @@ var _round_token := 0
 
 func _ready() -> void:
 	visible = false
+	($Center as Control).theme = UiTheme.get_theme()
 	GameState.round_finished.connect(_on_round_finished)
 	GameState.round_reset.connect(_hide)
 	_build_extras()
@@ -32,14 +33,13 @@ func _build_extras() -> void:
 	box.move_child(_stars, title.get_index())
 	_score_label = Label.new()
 	_score_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_score_label.add_theme_font_size_override("font_size", 36)
-	_score_label.add_theme_color_override("font_color", Color("#087f5b"))
+	_score_label.theme_type_variation = &"DisplayMedium"
 	box.add_child(_score_label)
 	box.move_child(_score_label, subtitle.get_index() + 1)
 	_streak_label = Label.new()
 	_streak_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_streak_label.add_theme_font_size_override("font_size", 15)
-	_streak_label.add_theme_color_override("font_color", Color("#b0207e"))
+	_streak_label.theme_type_variation = &"Caption"
+	_streak_label.add_theme_color_override("font_color", UiTheme.PINK)
 	box.add_child(_streak_label)
 	box.move_child(_streak_label, _score_label.get_index() + 1)
 
@@ -57,36 +57,41 @@ func _on_round_finished(grade: Dictionary) -> void:
 	stopped.text = "$%.2f" % GameState.shown_dollars()
 	target.text = "$%.2f" % GameState.target_dollars
 
+	var cents_off := float(grade.get("cents_off", 0)) / 100.0
+	var accent := UiTheme.MUTED
 	if over:
 		title.text = "Over target"
-		subtitle.text = grade.get("label", "")
-		delta.text = "+$%.2f" % (float(grade.get("cents_off", 0)) / 100.0)
-		delta.add_theme_color_override("font_color", Color("#d92d20"))
+		subtitle.text = "Stopped $%.2f past the target." % cents_off
+		delta.text = "+$%.2f" % cents_off
+		accent = UiTheme.RED
 		_pulse_fail()
 	elif perfect:
 		title.text = "Perfect stop"
-		subtitle.text = "You nailed the challenge zone."
-		var short_dollars: float = float(grade.get("cents_off", 0)) / 100.0
-		delta.text = "$%.2f short" % short_dollars
-		delta.add_theme_color_override("font_color", Color("#087f5b"))
+		subtitle.text = "Right on the money."
+		delta.text = "$%.2f" % cents_off
+		accent = UiTheme.GREEN
 		_pulse_success()
 	else:
-		title.text = "Solid stop" if score > 0 else "Missed target"
-		subtitle.text = grade.get("label", "")
-		var short_dollars: float = float(grade.get("cents_off", 0)) / 100.0
-		delta.text = "$%.2f short" % short_dollars
-		delta.add_theme_color_override(
-			"font_color",
-			Color("#087f5b") if score > 0 else Color("#575757")
-		)
+		title.text = "So close" if cents_off <= 0.05 else ("Solid stop" if score > 0 else "Missed target")
+		subtitle.text = "Just %d¢ short." % int(grade.get("cents_off", 0)) if cents_off <= 0.05 else grade.get("label", "")
+		delta.text = "-$%.2f" % cents_off
+		accent = UiTheme.AMBER if score > 0 else UiTheme.MUTED
+	title.add_theme_color_override("font_color", accent)
+	delta.add_theme_color_override("font_color", accent)
+	_score_label.add_theme_color_override("font_color", accent)
+	panel.add_theme_stylebox_override("panel", UiTheme.card(accent))
 
 	var streak := int(grade.get("streak", 0))
-	_streak_label.text = "STREAK ×%d  ·  best %d" % [streak, GameState.best_streak] if streak >= 2 else ""
+	_streak_label.text = "Streak ×%d  ·  best %d" % [streak, GameState.best_streak] if streak >= 2 else ""
+	_streak_label.visible = streak >= 2
 	_score_label.visible = score > 0
 	_count_up(score)
 	_stars.call("reveal", _star_count(grade))
 
 	visible = true
+	var dim := %Dim as ColorRect
+	dim.color.a = 0.0
+	create_tween().tween_property(dim, "color:a", 0.45, 0.25)
 	await get_tree().process_frame
 	panel.pivot_offset = panel.size / 2.0
 	title.pivot_offset = title.size / 2.0
@@ -114,10 +119,10 @@ func _star_count(grade: Dictionary) -> int:
 
 
 func _count_up(score: int) -> void:
-	_score_label.text = "+0"
+	_score_label.text = "+0 pts"
 	var tw := create_tween()
 	tw.tween_interval(0.25)
-	tw.tween_method(func(v: float) -> void: _score_label.text = "+%d" % int(v), 0.0, float(score), 0.7)\
+	tw.tween_method(func(v: float) -> void: _score_label.text = "+%d pts" % int(v), 0.0, float(score), 0.7)\
 		.set_trans(Tween.TRANS_QUART).set_ease(Tween.EASE_OUT)
 	tw.tween_callback(_pop_score)
 

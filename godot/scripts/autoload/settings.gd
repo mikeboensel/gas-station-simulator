@@ -2,6 +2,7 @@ extends Node
 ## Player preferences, persisted to user://settings.cfg.
 
 signal camera_view_changed(view: StringName)
+signal stop_assist_changed(mode: StringName)
 
 const PATH := "user://settings.cfg"
 const VIEWS := {
@@ -21,8 +22,16 @@ const VIEWS := {
 	},
 }
 const DEFAULT_VIEW := &"pump"
+## Testing aid: one click pumps and the pump stops itself on the chosen outcome.
+const STOP_ASSISTS := {
+	&"off": "Off",
+	&"near_miss": "Near miss",
+	&"perfect": "Perfect",
+}
 
 var camera_view: StringName = DEFAULT_VIEW
+## Session-only so a test mode never sticks around between launches.
+var stop_assist: StringName = &"off"
 var menu_open := false
 
 
@@ -43,6 +52,13 @@ func set_camera_view(view: StringName) -> void:
 	cfg.set_value("camera", "view", String(view))
 	cfg.save(PATH)
 	camera_view_changed.emit(view)
+
+
+func set_stop_assist(mode: StringName) -> void:
+	if not STOP_ASSISTS.has(mode) or mode == stop_assist:
+		return
+	stop_assist = mode
+	stop_assist_changed.emit(mode)
 
 
 func view_preset(view: StringName = camera_view) -> Dictionary:

@@ -108,7 +108,7 @@ func _build_store() -> void:
 	var sign_box := BoxMesh.new()
 	sign_box.size = Vector3(7.0, 0.9, 0.2)
 	_box(sign_box, Vector3(0, 3.55, -0.1), _flat(Color(0.05, 0.05, 0.07)), root)
-	_label(root, "INK  MART  24/7", Vector3(0, 3.55, -0.3), 190, Color(1.0, 0.3, 0.5) * 2.4)
+	_label(root, "SUNDAI  MART  24/7", Vector3(0, 3.55, -0.3), 190, Color(1.0, 0.3, 0.5) * 2.4)
 	var spill := OmniLight3D.new()
 	spill.position = Vector3(0, 2.0, -2.0)
 	spill.light_color = Color(1.0, 0.78, 0.5)

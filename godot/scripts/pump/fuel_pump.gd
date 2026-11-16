@@ -66,8 +66,8 @@ func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("pump_hold"):
 		GameState.start_pump()
 	if event.is_action_released("pump_hold"):
-		GameState.request_stop()
-		Sfx.play_stop()
+		if GameState.request_stop():
+			Sfx.play_stop()
 	if event.is_action_pressed("next_round") and GameState.phase == &"result":
 		GameState.pick_new_target()
 
@@ -88,8 +88,8 @@ func _on_nozzle_input(_camera: Node, event: InputEvent, _pos: Vector3, _normal: 
 		if event.pressed:
 			GameState.start_pump()
 		else:
-			GameState.request_stop()
-			Sfx.play_stop()
+			if GameState.request_stop():
+				Sfx.play_stop()
 
 
 func _on_nozzle_hover(inside: bool) -> void:

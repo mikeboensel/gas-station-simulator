@@ -12,7 +12,7 @@ const EASE_OFF_FACTOR := 0.3
 const EASE_OFF_START := 1.5
 const EASE_OFF_END := 0.4
 const TARGET_MIN := 6.0
-const TARGET_MAX := 20.0
+const TARGET_MAX := 10.0
 const TARGET_STEP := 0.25
 const STOP_LATENCY_SEC := 0.14
 ## Rounds that would end below this are treated as an accidental tap, not a stop.

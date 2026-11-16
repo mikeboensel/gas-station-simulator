@@ -70,7 +70,6 @@ func _on_round_finished(grade: Dictionary) -> void:
 	_clear_popups()
 	if grade.get("over", false):
 		_flash(Color(1.0, 0.82, 0.55, 0.85))
-		_popup("KABOOM!", Color("#ff8a2a"), 150, 0.3)
 	if grade.get("perfect", false):
 		_popup("PERFECT!", Color("#7dffc4"), 130, 0.13)
 	elif not grade.get("over", false) and float(grade.get("cents_off", 99.0)) <= 5.0:

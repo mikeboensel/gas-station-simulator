@@ -1,6 +1,8 @@
 extends CanvasLayer
 
 const ResultStars := preload("res://scripts/ui/result_stars.gd")
+## Over-target stops hold the panel back so the explosion reads first.
+const EXPLOSION_HOLD_SEC := 1.4
 
 @onready var panel: PanelContainer = %Panel
 @onready var title: Label = %Title
@@ -13,6 +15,7 @@ var _fail_tween: Tween
 var _score_label: Label
 var _streak_label: Label
 var _stars: Control
+var _round_token := 0
 
 
 func _ready() -> void:
@@ -45,6 +48,12 @@ func _on_round_finished(grade: Dictionary) -> void:
 	var over: bool = grade.get("over", false)
 	var perfect: bool = grade.get("perfect", false)
 	var score := int(grade.get("score", 0))
+	_round_token += 1
+	if over:
+		var token := _round_token
+		await get_tree().create_timer(EXPLOSION_HOLD_SEC).timeout
+		if GameState.phase != &"result" or token != _round_token:
+			return
 	stopped.text = "$%.2f" % GameState.shown_dollars()
 	target.text = "$%.2f" % GameState.target_dollars
 

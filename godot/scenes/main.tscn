@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3 uid="uid://main001"]
+[gd_scene load_steps=15 format=3 uid="uid://main001"]
 
 [ext_resource type="PackedScene" uid="uid://forecourt001" path="res://scenes/world/forecourt.tscn" id="1"]
 [ext_resource type="PackedScene" uid="uid://fuelpump001" path="res://scenes/pump/fuel_pump.tscn" id="2"]
@@ -9,6 +9,7 @@
 [ext_resource type="PackedScene" uid="uid://confetti001" path="res://scenes/fx/confetti.tscn" id="6"]
 [ext_resource type="Script" path="res://scripts/ui/screen_fx.gd" id="8"]
 [ext_resource type="Script" path="res://scripts/ui/settings_menu.gd" id="9"]
+[ext_resource type="Script" path="res://scripts/fx/fail_explosion.gd" id="10"]
 
 [sub_resource type="ProceduralSkyMaterial" id="Sky_Dusk"]
 sky_top_color = Color(0.05, 0.06, 0.19, 1)
@@ -79,6 +80,9 @@ directional_shadow_max_distance = 35.0
 transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 0, 0, 0)
 
 [node name="Confetti" parent="Forecourt/PumpAnchor" instance=ExtResource("6")]
+
+[node name="FailExplosion" type="Node3D" parent="Forecourt/PumpAnchor"]
+script = ExtResource("10")
 
 [node name="CameraRig" type="Node3D" parent="."]
 

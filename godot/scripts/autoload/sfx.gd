@@ -5,6 +5,7 @@ extends Node
 @onready var _success: AudioStreamPlayer = $Success
 @onready var _fail: AudioStreamPlayer = $Fail
 @onready var _tick: AudioStreamPlayer = $Tick
+@onready var _boom: AudioStreamPlayer = $Boom
 
 var muted := false
 
@@ -15,6 +16,7 @@ const _LEVELS := {
 	"Success": -4.0,
 	"Fail": -4.0,
 	"Tick": -10.0,
+	"Boom": -2.0,
 }
 
 
@@ -110,6 +112,8 @@ func _on_round_finished(grade: Dictionary) -> void:
 	if grade.get("over", false):
 		_fail.pitch_scale = 1.0
 		_fail.play()
+		_play_booms(2 + int(float(grade.get("cents_off", 0)) > 75.0))
+		_brief_hit_stop(0.1, 0.2)
 		return
 	if grade.get("perfect", false):
 		_success.pitch_scale = 1.12
@@ -118,6 +122,17 @@ func _on_round_finished(grade: Dictionary) -> void:
 	elif grade.get("score", 0) > 0:
 		_success.pitch_scale = 1.0 + clampf(grade.score / 2000.0, 0.0, 0.08)
 		_success.play()
+
+
+func _play_booms(count: int) -> void:
+	for i in count + 1:
+		var p := _boom.duplicate() as AudioStreamPlayer
+		add_child(p)
+		p.pitch_scale = 0.9 if i == 0 else randf_range(1.05, 1.35)
+		p.volume_db = _boom.get_meta("base_db", -2.0) - (0.0 if i == 0 else 6.0)
+		p.finished.connect(p.queue_free)
+		p.play()
+		await get_tree().create_timer(0.2 + 0.18 * i, true, false, true).timeout
 
 
 func _brief_hit_stop(duration: float, time_scale: float) -> void:

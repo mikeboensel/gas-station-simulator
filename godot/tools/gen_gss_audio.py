@@ -102,12 +102,32 @@ def gen_tick() -> list[float]:
     return out
 
 
+def gen_boom() -> list[float]:
+    duration = 2.2
+    n = int(duration * RATE)
+    out: list[float] = []
+    brown = 0.0
+    lp = 0.0
+    for i in range(n):
+        t = i / RATE
+        brown = max(-1.0, min(1.0, brown + random.uniform(-0.08, 0.08)))
+        white = random.uniform(-1, 1)
+        lp = lp * 0.9 + white * 0.1
+        thump = math.sin(2 * math.pi * (70 * math.exp(-t * 3) + 28) * t) * math.exp(-t * 4.5)
+        body = brown * math.exp(-t * 2.2)
+        crack = lp * math.exp(-t * 18) * 1.4
+        crackle = (random.random() < 0.004 * math.exp(-t * 1.5)) * random.uniform(-0.6, 0.6)
+        out.append((thump * 0.85 + body * 0.9 + crack + crackle) * envelope(t, 0.002, 0.4, duration))
+    return out
+
+
 def main() -> None:
     write_wav(OUT / "pump_loop.wav", gen_pump_loop())
     write_wav(OUT / "stop.wav", gen_stop())
     write_wav(OUT / "success.wav", gen_success())
     write_wav(OUT / "fail.wav", gen_fail())
     write_wav(OUT / "tick.wav", gen_tick())
+    write_wav(OUT / "boom.wav", gen_boom())
     print(f"Wrote SFX to {OUT}")
 
 

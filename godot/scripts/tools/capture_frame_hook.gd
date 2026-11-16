@@ -1,7 +1,7 @@
 extends Node
 ## Saves one viewport PNG when launched with: `godot --path . -- --capture-frame [/path/out.png]`
 ## Optional: `--pump-to <dollars>` holds the pump until the sale reaches it, `--release` stops it
-## (capturing ~0.8s later, mid result FX), `--target <dollars>` forces the target,
+## (capturing `--after <sec>` later, default 0.8s, mid result FX), `--target <dollars>` forces the target,
 ## `--with-ui` keeps HUD/overlay visible, `--eye x,y,z --look x,y,z` overrides the camera,
 ## `--view pump|chase` picks the camera view without saving it, `--open-settings` shows the menu.
 
@@ -51,7 +51,8 @@ func _capture(out_path: String, args: PackedStringArray) -> void:
 			await get_tree().process_frame
 		if args.has("--release"):
 			GameState.request_stop()
-			await get_tree().create_timer(0.8, true, false, true).timeout
+			var after := float(args[args.find("--after") + 1]) if args.has("--after") else 0.8
+			await get_tree().create_timer(after, true, false, true).timeout
 	await get_tree().process_frame
 	await RenderingServer.frame_post_draw
 	var img := get_viewport().get_texture().get_image()

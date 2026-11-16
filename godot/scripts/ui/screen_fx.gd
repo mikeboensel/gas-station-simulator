@@ -68,6 +68,9 @@ func _on_went_over() -> void:
 
 func _on_round_finished(grade: Dictionary) -> void:
 	_clear_popups()
+	if grade.get("over", false):
+		_flash(Color(1.0, 0.82, 0.55, 0.85))
+		_popup("KABOOM!", Color("#ff8a2a"), 150, 0.3)
 	if grade.get("perfect", false):
 		_popup("PERFECT!", Color("#7dffc4"), 130, 0.13)
 	elif not grade.get("over", false) and float(grade.get("cents_off", 99.0)) <= 5.0:
@@ -75,6 +78,17 @@ func _on_round_finished(grade: Dictionary) -> void:
 	var streak := int(grade.get("streak", 0))
 	if streak >= 2:
 		_popup("%d× STREAK" % streak, Color("#ff7ad9"), 52, 0.24)
+
+
+func _flash(color: Color) -> void:
+	var rect := ColorRect.new()
+	rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+	rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	rect.color = color
+	add_child(rect)
+	var tw := rect.create_tween()
+	tw.tween_property(rect, "color:a", 0.0, 0.45).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUAD)
+	tw.tween_callback(rect.queue_free)
 
 
 func _clear_popups() -> void:

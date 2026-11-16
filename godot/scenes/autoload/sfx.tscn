@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3 uid="uid://sfxautoload"]
+[gd_scene load_steps=8 format=3 uid="uid://sfxautoload"]
 
 [ext_resource type="Script" path="res://scripts/autoload/sfx.gd" id="1"]
 [ext_resource type="AudioStream" path="res://assets/audio/pump_loop.wav" id="2"]
@@ -6,6 +6,7 @@
 [ext_resource type="AudioStream" path="res://assets/audio/success.wav" id="4"]
 [ext_resource type="AudioStream" path="res://assets/audio/fail.wav" id="5"]
 [ext_resource type="AudioStream" path="res://assets/audio/tick.wav" id="6"]
+[ext_resource type="AudioStream" path="res://assets/audio/boom.wav" id="7"]
 
 [node name="Sfx" type="Node"]
 script = ExtResource("1")
@@ -30,3 +31,7 @@ volume_db = -4.0
 [node name="Tick" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("6")
 volume_db = -10.0
+
+[node name="Boom" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("7")
+volume_db = -2.0

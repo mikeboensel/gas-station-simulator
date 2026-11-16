@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { C, FONT, HEX, WIDTH, card, money, txt } from './theme';
-import type { PumpModel } from './model';
+import { comboMultiplier, type PumpModel } from './model';
 
 const X = 32;
 const Y = 438;
@@ -70,7 +70,12 @@ export class Hud {
     this.leftText.setText(left >= 0 ? `${money(left / 100)} to go` : `${money(-left / 100)} over`);
     this.leftText.setColor(left < 0 ? HEX.red : model.inPerfectZone() ? HEX.green : HEX.muted);
     this.flowText.setText(`Round ${round}  ·  ${model.speedLabel()} flow`);
-    this.streakText.setText(model.streak >= 2 ? `STREAK ×${model.streak}` : '');
+    const combo = comboMultiplier(model.streak + 1);
+    const label = model.streak >= 1 && model.phase !== 'result' ? `COMBO ×${combo}` : '';
+    if (label !== this.streakText.text) {
+      this.streakText.setText(label);
+      if (label) this.scene.tweens.add({ targets: this.streakText, scale: { from: 1.6, to: 1 }, duration: 350, ease: 'Back.easeOut' });
+    }
     this.setStatus(this.statusFor(model));
   }
 
@@ -84,15 +89,26 @@ export class Hud {
     this.scene.tweens.add({ targets: this.scoreText, scale: { from: 1.3, to: 1 }, duration: 300, ease: 'Back.easeOut' });
   }
 
+  /** Where tip coins land. */
+  scoreAnchor(): { x: number; y: number } {
+    return { x: X + W - 40, y: Y + 220 };
+  }
+
+  bumpScore(): void {
+    this.scene.tweens.killTweensOf(this.frame);
+    this.scene.tweens.add({ targets: this.frame, y: { from: 3, to: 0 }, duration: 90 });
+    this.scene.tweens.add({ targets: this.scoreText, scale: { from: 1.25, to: 1 }, duration: 160 });
+  }
+
   setMuted(muted: boolean): void {
     this.muteText.setText(muted ? 'SOUND OFF  ·  M' : '');
   }
 
   showBanner(label: string, color: string): void {
-    this.banner.setText(label).setColor(color).setAlpha(1).setScale(0.6).setY(130);
+    this.banner.setText(label).setColor(color).setAlpha(1).setScale(0.6).setY(30);
     this.scene.tweens.killTweensOf(this.banner);
     this.scene.tweens.add({ targets: this.banner, scale: 1, duration: 260, ease: 'Back.easeOut' });
-    this.scene.tweens.add({ targets: this.banner, alpha: 0, y: 110, delay: 1100, duration: 400 });
+    this.scene.tweens.add({ targets: this.banner, alpha: 0, y: 14, delay: 1600, duration: 400 });
   }
 
   private statusFor(model: PumpModel): Status {
@@ -115,7 +131,7 @@ export class Hud {
   }
 
   private addHints(ui: Phaser.GameObjects.Container): void {
-    const hints: [string, string][] = [['SPACE / CLICK', 'Hold to pump'], ['R', 'Next'], ['M', 'Mute']];
+    const hints: [string, string][] = [['SPACE / CLICK', 'Hold to pump'], ['R', 'Next'], ['H', 'Honk'], ['M', 'Mute']];
     const row = this.scene.add.container(0, 696);
     let x = 0;
     for (const [key, label] of hints) {

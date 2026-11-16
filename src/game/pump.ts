@@ -28,6 +28,12 @@ export class PumpView {
   private readonly dots: Phaser.GameObjects.Image[] = [];
   private flowPhase = 0;
   private readonly scene: Phaser.Scene;
+  private readonly hoseGfx: Phaser.GameObjects.Graphics;
+  /** 0 = nozzle in its holster, 1 = plugged into the car. Tweened. */
+  plugged = 0;
+  private drawnPlug = -1;
+  private hover = false;
+  private state: TriggerState = 'idle';
 
   constructor(scene: Phaser.Scene, layer: Phaser.GameObjects.Container) {
     this.scene = scene;
@@ -36,9 +42,11 @@ export class PumpView {
     this.hose = new Phaser.Curves.CubicBezier(
       new Phaser.Math.Vector2(X + W + 4, 330),
       new Phaser.Math.Vector2(X + W + 70, 360),
-      new Phaser.Math.Vector2(FUEL_DOOR.x - 60, 640),
-      new Phaser.Math.Vector2(FUEL_DOOR.x - 8, FUEL_DOOR.y),
+      new Phaser.Math.Vector2(),
+      new Phaser.Math.Vector2(),
     );
+    this.hoseGfx = scene.add.graphics();
+    this.root.add(this.hoseGfx);
     this.drawHose();
     this.body = scene.add.container(0, 0);
     this.root.add(this.body);
@@ -68,7 +76,22 @@ export class PumpView {
       this.dots.push(dot);
       this.root.add(dot);
     }
+    const hit = scene.add.zone(CX, 500, 120, 120).setInteractive({ useHandCursor: true }).setData('pump', true);
+    hit.on('pointerover', () => this.setHover(true));
+    hit.on('pointerout', () => this.setHover(false));
+    this.body.add(hit);
     this.setTrigger('idle');
+  }
+
+  /** Swings the nozzle between holster and car. */
+  plug(on: boolean, duration = 500): void {
+    this.scene.tweens.add({ targets: this, plugged: on ? 1 : 0, duration, ease: on ? 'Back.easeOut' : 'Quad.easeIn' });
+  }
+
+  private setHover(on: boolean): void {
+    this.hover = on;
+    const scale = on && this.state === 'idle' ? 1.08 : 1;
+    this.scene.tweens.add({ targets: [this.trigger, this.triggerLabel], scale, duration: 120, ease: 'Back.easeOut' });
   }
 
   render(model: PumpModel): void {
@@ -82,6 +105,8 @@ export class PumpView {
   }
 
   setTrigger(state: TriggerState): void {
+    this.state = state;
+    if (state !== 'idle' && this.hover) this.setHover(true);
     const fill = { idle: C.green, pumping: C.amber, stopping: 0x8a8a96, locked: 0x55555f }[state];
     const label = { idle: 'HOLD', pumping: 'RELEASE', stopping: '…', locked: 'DONE' }[state];
     this.trigger.clear();
@@ -109,7 +134,8 @@ export class PumpView {
   update(time: number, dt: number, flowing: boolean, tension: number, idlePulse: boolean): void {
     const amp = flowing ? 0.5 + tension * 1.6 : 0;
     this.body.setPosition((Math.random() - 0.5) * amp, (Math.random() - 0.5) * amp);
-    if (idlePulse) this.triggerGlow.setAlpha(0.25 + 0.2 * Math.sin(time / 260));
+    if (idlePulse) this.triggerGlow.setAlpha((this.hover ? 0.5 : 0.25) + 0.2 * Math.sin(time / 260));
+    if (this.plugged !== this.drawnPlug) this.drawHose();
     this.flowPhase = (this.flowPhase + dt * (flowing ? 1.4 : 0)) % 1;
     this.dots.forEach((dot, i) => {
       dot.setVisible(flowing);
@@ -156,17 +182,24 @@ export class PumpView {
   }
 
   private drawHose(): void {
-    const g = this.scene.add.graphics();
-    this.root.add(g);
+    const p = this.plugged;
+    this.drawnPlug = p;
+    const lerp = Phaser.Math.Linear;
+    const lift = Math.sin(Math.PI * Phaser.Math.Clamp(p, 0, 1)) * 70;
+    const nx = lerp(X + W + 22, FUEL_DOOR.x - 8, p);
+    const ny = lerp(392, FUEL_DOOR.y, p) - lift;
+    this.hose.p2.set(lerp(X + W + 40, FUEL_DOOR.x - 60, p), lerp(560, 640, p));
+    this.hose.p3.set(nx, ny);
+    const g = this.hoseGfx.clear();
     const pts = this.hose.getPoints(40);
     g.lineStyle(14, 0x0d0d12, 1);
     g.strokePoints(pts);
     g.lineStyle(4, 0x3a3a48, 1);
-    g.strokePoints(pts.map((p) => new Phaser.Math.Vector2(p.x - 2, p.y - 2)));
+    g.strokePoints(pts.map((pt) => new Phaser.Math.Vector2(pt.x - 2, pt.y - 2)));
     g.fillStyle(0x24242c, 1);
-    g.fillRoundedRect(FUEL_DOOR.x - 40, FUEL_DOOR.y - 12, 36, 22, 6);
+    g.fillRoundedRect(nx - 32, ny - 12, 36, 22, 6);
     g.fillStyle(C.green, 1);
-    g.fillRect(FUEL_DOOR.x - 40, FUEL_DOOR.y - 12, 8, 22);
+    g.fillRect(nx - 32, ny - 12, 8, 22);
   }
 
   private drawCabinet(): void {

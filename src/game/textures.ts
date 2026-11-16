@@ -57,6 +57,21 @@ export function makeTextures(scene: Phaser.Scene): void {
     ctx.fillStyle = '#fff';
     ctx.fillRect(0, 0, w, h);
   });
+  canvasTexture(scene, 'coin', 40, 40, (ctx) => {
+    ctx.fillStyle = '#b8860b';
+    ctx.beginPath();
+    ctx.arc(20, 20, 19, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#ffd34d';
+    ctx.beginPath();
+    ctx.arc(20, 18, 16, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#b8860b';
+    ctx.font = 'bold 22px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('$', 20, 19);
+  });
   canvasTexture(scene, 'vignette', WIDTH / 4, HEIGHT / 4, (ctx, w, h) => {
     const g = ctx.createRadialGradient(w / 2, h / 2, h * 0.35, w / 2, h / 2, w * 0.62);
     g.addColorStop(0, 'rgba(255,255,255,0)');

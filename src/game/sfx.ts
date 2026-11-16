@@ -106,6 +106,38 @@ export class Sfx {
     this.tone(880 * 2 ** (i * 4 / 12), 0.14, 'sine', 0.2);
   }
 
+  honk(): void {
+    this.tone(392, 0.22, 'square', 0.12);
+    this.tone(494, 0.22, 'square', 0.1);
+  }
+
+  coin(i: number): void {
+    const f = 1568 + (i % 5) * 120;
+    this.tone(f, 0.06, 'square', 0.08, f, 0);
+    this.tone(f * 1.5, 0.16, 'square', 0.07, f * 1.5, 0.05);
+  }
+
+  buzz(): void {
+    this.tone(120, 0.35, 'sawtooth', 0.12, 118);
+    this.burst(0.3, 3000, 0.06);
+  }
+
+  engine(rev = 1): void {
+    this.tone(70, 0.9, 'sawtooth', 0.12 * rev, 140);
+    this.burst(0.5, 300, 0.2 * rev);
+  }
+
+  swish(): void {
+    this.burst(0.18, 1800, 0.18);
+  }
+
+  combo(level: number): void {
+    [0, 4, 7, 12].forEach((step, i) => {
+      const f = 523 * 2 ** ((step + level * 2) / 12);
+      this.tone(f, 0.16, 'square', 0.09, f, i * 0.06);
+    });
+  }
+
   boom(power = 1, delay = 0): void {
     const ctx = this.ctx;
     if (!ctx) return;

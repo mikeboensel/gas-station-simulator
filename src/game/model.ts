@@ -22,6 +22,12 @@ export interface Grade {
   score: number;
   label: string;
   streak: number;
+  multiplier: number;
+}
+
+/** Consecutive stops within the perfect zone stack a bonus: ×1, ×1.5, ×2 … capped at ×3. */
+export function comboMultiplier(streak: number): number {
+  return 1 + 0.5 * clamp(streak - 1, 0, 4);
 }
 
 export class PumpModel {
@@ -103,19 +109,22 @@ export class PumpModel {
     const diff = this.shownCents() - Math.round(this.target * 100);
     if (diff > 0) {
       this.streak = 0;
-      return { over: true, perfect: false, centsOff: diff, score: 0, label: `Over by ${cents(diff)}`, streak: 0 };
+      return {
+        over: true, perfect: false, centsOff: diff, score: 0, label: `Over by ${cents(diff)}`, streak: 0, multiplier: 1,
+      };
     }
     const off = -diff;
-    const score = Math.max(0, Math.round(1000 - off * 20));
-    this.totalScore += score;
     this.streak = off <= PERFECT_ZONE_CENTS ? this.streak + 1 : 0;
     this.bestStreak = Math.max(this.bestStreak, this.streak);
+    const multiplier = comboMultiplier(this.streak);
+    const score = Math.max(0, Math.round((1000 - off * 20) * multiplier));
+    this.totalScore += score;
     let label = 'Solid stop';
     if (off === 0) label = 'Perfect stop';
     else if (off <= PERFECT_ZONE_CENTS) label = 'So close';
     else if (off <= 20) label = 'Pretty good';
     else if (score === 0) label = 'Way short';
-    return { over: false, perfect: off === 0, centsOff: off, score, label, streak: this.streak };
+    return { over: false, perfect: off === 0, centsOff: off, score, label, streak: this.streak, multiplier };
   }
 
   /** Testing aid: ends the flow exactly on `goalCents`. */

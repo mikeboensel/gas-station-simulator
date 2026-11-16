@@ -90,7 +90,8 @@ export class ResultsCard {
     const size = Math.abs(diff);
     this.tiles[2].setText(`${sign}${size < 100 ? `${size}¢` : money(size / 100)}`)
       .setColor(diff > 0 ? HEX.red : diff === 0 ? HEX.green : HEX.text);
-    this.points.setText(grade.over ? 'No points' : `+${grade.score} pts`).setColor(grade.score > 0 ? HEX.green : HEX.muted);
+    const combo = grade.multiplier > 1 ? `  ×${grade.multiplier}` : '';
+    this.points.setText(grade.over ? 'No points' : `+${grade.score}${combo}`).setColor(grade.score > 0 ? HEX.green : HEX.muted);
     const earned = grade.over ? 0 : grade.perfect ? 3 : grade.centsOff <= 5 ? 2 : grade.score > 0 ? 1 : 0;
     this.stars.forEach((s, i) => {
       this.drawStar(s, false);

@@ -116,6 +116,33 @@ export class Fx {
     e.setEmitterAngle({ min: 225, max: 255 }).explode(count / 2, WIDTH, HEIGHT);
   }
 
+  /** Tip coins arc from the car into the score counter; `onLand` fires per coin. */
+  coins(from: { x: number; y: number }, to: { x: number; y: number }, count: number, onLand: (i: number) => void): void {
+    for (let i = 0; i < count; i++) {
+      const coin = this.scene.add.image(from.x, from.y, 'coin').setScale(0.2);
+      this.ui.add(coin);
+      const peakX = from.x + Phaser.Math.Between(-160, 80);
+      const peakY = from.y - Phaser.Math.Between(140, 260);
+      const curve = new Phaser.Curves.QuadraticBezier(
+        new Phaser.Math.Vector2(from.x, from.y), new Phaser.Math.Vector2(peakX, peakY), new Phaser.Math.Vector2(to.x, to.y),
+      );
+      const state = { t: 0 };
+      this.scene.tweens.add({
+        targets: state, t: 1, delay: i * 70, duration: 700, ease: 'Sine.easeIn',
+        onStart: () => this.scene.tweens.add({ targets: coin, scale: 0.8, duration: 160, ease: 'Back.easeOut' }),
+        onUpdate: () => {
+          const p = curve.getPoint(state.t);
+          coin.setPosition(p.x, p.y).setScale(0.8 - state.t * 0.3, (0.8 - state.t * 0.3) * Math.abs(Math.cos(state.t * 12)));
+        },
+        onComplete: () => {
+          coin.destroy();
+          this.sparks.explode(6, to.x, to.y);
+          onLand(i);
+        },
+      });
+    }
+  }
+
   setSmoldering(on: boolean, x = 0, y = 0): void {
     this.smolder.setPosition(x, y);
     if (on) this.smolder.start();

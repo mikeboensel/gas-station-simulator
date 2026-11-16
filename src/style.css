@@ -1,6 +1,6 @@
 :root {
-  color: #171717;
-  background: #f8efe0;
+  color: #f5f3ee;
+  background: radial-gradient(ellipse at center, #1a1630 0%, #07070c 70%);
 }
 
 * {
